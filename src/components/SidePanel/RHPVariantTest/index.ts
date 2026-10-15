@@ -1,4 +1,3 @@
-import SidePanelActions from '@libs/actions/SidePanel';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -32,9 +31,9 @@ Onyx.connectWithoutView({
 });
 
 /**
- * Determines if the user should be navigated to the RHP variant side panel after onboarding.
- * The existing micro-company RHP variants (rhpConciergeDm, rhpAdminsRoom) are only shown to micro companies.
- * The trackExpensesWithConcierge variant is controlled entirely by the backend and applies regardless of company size.
+ * Determines if the user should be navigated to the destination of a retired RHP variant after onboarding.
+ * The retired variants (rhpConciergeDm, rhpAdminsRoom, rhpHomePage) only applied to micro companies.
+ * The trackExpensesWithConcierge and homePageNoRHP variants are handled in navigateAfterOnboarding instead.
  *
  * Accepts an optional variantOverride to bypass the module-level Onyx variable, avoiding a race
  * condition where the Onyx callback hasn't fired yet when this is called immediately after the
@@ -42,10 +41,6 @@ Onyx.connectWithoutView({
  */
 const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
     const variant = variantOverride ?? onboardingRHPVariant;
-
-    if (variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        return true;
-    }
 
     const isMicroCompany =
         onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL ||
@@ -60,22 +55,13 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
 };
 
 /**
- * Handles navigation for RHP experiment variants (B/C/D):
+ * Handles navigation for the retired RHP experiment variants (B/C/D):
  * Variants B and C navigate to the workspace overview, Variant D navigates to home.
- * All variants open the side panel without overlay.
+ * The side panel stays closed so the user isn't onboarded in two places at once; they can still open it themselves.
  * The control variant is handled separately in navigateAfterOnboarding.
  */
 const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID, variantOverride, navigationOptions) => {
     const variant = variantOverride ?? onboardingRHPVariant;
-    if (variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        const shouldPreserveRevealedReport = isReportTopmostSplitNavigator();
-        if (!shouldPreserveRevealedReport) {
-            Navigation.navigate(ROUTES.HOME, navigationOptions);
-        }
-        SidePanelActions.openSidePanel(true);
-        return;
-    }
-
     const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 
     if (isRHPHomePage) {
@@ -86,7 +72,6 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
     } else {
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID), navigationOptions);
     }
-    SidePanelActions.openSidePanel(true);
 };
 
 export {shouldOpenRHPVariant, handleRHPVariantNavigation};

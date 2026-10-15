@@ -102,8 +102,8 @@ function useAutoCreateTrackWorkspace() {
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-            // On mobile, hardcode trackExpensesWithConcierge since the web flow already works
-            // with the CompleteGuidedSetup response and side panel isn't supported on native.
+            // On mobile, hardcode trackExpensesWithConcierge since native doesn't wait for the variant in the
+            // CompleteGuidedSetup response. The variant lands the user on Home on every platform.
             let rhpVariant: OnboardingRHPVariant | undefined = isSidePanelReportSupported ? undefined : CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE;
             try {
                 const response = await completeOnboarding({
@@ -125,9 +125,9 @@ function useAutoCreateTrackWorkspace() {
 
                 if (isSidePanelReportSupported) {
                     rhpVariant = extractRHPVariantFromResponse(response);
-                    // Every Track onboarding choice should land in the Concierge RHP, but the backend
-                    // doesn't reliably return trackExpensesWithConcierge for all of them, so fall back to it
-                    // whenever the response omits a variant.
+                    // Every Track onboarding choice should land on Home, but the backend doesn't reliably
+                    // return trackExpensesWithConcierge for all of them, so fall back to it whenever the
+                    // response omits a variant.
                     if (!rhpVariant && isTrackOnboardingChoice(onboardingPurposeSelected)) {
                         rhpVariant = CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE;
                     }

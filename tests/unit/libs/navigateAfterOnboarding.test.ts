@@ -47,28 +47,22 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
         expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 
-    it('navigates to Spend > Expenses with the expanded side panel when not using narrow layout', () => {
-        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue('test-policy-id', false);
+    it('navigates to Spend > Expenses without opening the side panel', () => {
+        // Given an employee who created or joined a Submit workspace while onboarding with the "Get paid back by my employer" intent
+        const policyID = 'test-policy-id';
 
+        // When onboarding finishes
+        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID);
+
+        // Then the user still lands on Spend > Expenses, since a separate A/B test decides where Submit users land
         expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
         expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
         expect(navigationMock.navigate).toHaveBeenCalledWith(
             ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
         );
-        // The side panel shows the #admins room, where the Submit welcome and its suggested responses are posted.
+        // And the side panel stays closed so the user isn't onboarded in two places at once, while opening it later still shows the
+        // #admins room, where the Submit welcome and its suggested responses are posted
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
         expect(setOnboardingRHPVariant).toHaveBeenCalledWith(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
-    });
-
-    it('navigates to Spend > Expenses with the collapsed side panel when using narrow layout', () => {
-        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue('test-policy-id', true);
-
-        expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
-        expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
-        expect(navigationMock.navigate).toHaveBeenCalledWith(
-            ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
-        );
-        expect(setOnboardingRHPVariant).toHaveBeenCalledWith(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(false);
     });
 });
